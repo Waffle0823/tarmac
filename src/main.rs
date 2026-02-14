@@ -2,6 +2,7 @@ mod alpha_bleed;
 mod asset_name;
 mod auth_cookie;
 mod codegen;
+mod typegen;
 mod commands;
 mod data;
 mod dpi_scale;

@@ -57,7 +57,7 @@ fn typegen_grouped(output_path: &Path, inputs: &[&SyncInput]) -> io::Result<()> 
 
         let mut current_dir = &mut root_folder;
         for (i, &segment) in segments.iter().enumerate() {
-            if i == segment.len() - 1 {
+            if i == segments.len() - 1 {
                 let input_group = match current_dir.get_mut(segment) {
                     Some(existing) => existing,
                     None => {

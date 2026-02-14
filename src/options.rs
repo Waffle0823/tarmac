@@ -76,6 +76,8 @@ pub struct SyncOptions {
     ///
     /// - roblox: Upload to Roblox.com
     ///
+    /// - roblox-ts: Upload to Roblox.com, and generate type files.
+    ///
     /// - none: Do not upload. Tarmac will exit with an error if there are any
     ///   unsynced assets.
     ///
@@ -99,6 +101,7 @@ pub struct SyncOptions {
 #[derive(Debug, Clone, Copy)]
 pub enum SyncTarget {
     Roblox,
+    RobloxTs,
     None,
     Debug,
 }
@@ -109,11 +112,12 @@ impl FromStr for SyncTarget {
     fn from_str(value: &str) -> Result<SyncTarget, Self::Err> {
         match value {
             "roblox" => Ok(SyncTarget::Roblox),
+            "roblox-ts" => Ok(SyncTarget::RobloxTs),
             "none" => Ok(SyncTarget::None),
             "debug" => Ok(SyncTarget::Debug),
 
             _ => Err(String::from(
-                "Invalid sync target. Valid options are roblox, none, and debug.",
+                "Invalid sync target. Valid options are roblox, roblox-ts, none, and debug.",
             )),
         }
     }

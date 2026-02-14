@@ -24,7 +24,8 @@ use crate::{
     sync_backend::{
         DebugSyncBackend, Error as SyncBackendError, NoneSyncBackend, RetryBackend,
         RobloxSyncBackend, SyncBackend, UploadInfo,
-    }, typegen::perform_typegen,
+    },
+    typegen::perform_typegen,
 };
 
 fn sync_session<B: SyncBackend>(session: &mut SyncSession, options: &SyncOptions, mut backend: B) {
@@ -629,9 +630,9 @@ impl SyncSession {
 
         for (compact, names) in compatible_codegen_groups {
             let inputs: Vec<_> = names.iter().map(|name| &self.inputs[name]).collect();
-            let output_path = compact.output_path;
+            let output_path = compact.output_path.map(|p| p.with_extension("d.ts"));
 
-            perform_typegen(output_path, &inputs)?;
+            perform_typegen(output_path.as_deref(), &inputs)?;
         }
 
         Ok(())

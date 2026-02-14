@@ -24,7 +24,7 @@ use crate::{
     sync_backend::{
         DebugSyncBackend, Error as SyncBackendError, NoneSyncBackend, RetryBackend,
         RobloxSyncBackend, SyncBackend, UploadInfo,
-    },
+    }, typegen::perform_typegen,
 };
 
 fn sync_session<B: SyncBackend>(session: &mut SyncSession, options: &SyncOptions, mut backend: B) {
@@ -53,6 +53,16 @@ pub fn sync(global: GlobalOptions, options: SyncOptions) -> Result<(), SyncError
 
     match &options.target {
         SyncTarget::Roblox => {
+            let group_id = session.root_config().upload_to_group_id;
+            sync_session(
+                &mut session,
+                &options,
+                RobloxSyncBackend::new(&mut api_client, group_id),
+            );
+        }
+        SyncTarget::RobloxTs => {
+            let _ = session.typegen();
+
             let group_id = session.root_config().upload_to_group_id;
             sync_session(
                 &mut session,
@@ -586,6 +596,42 @@ impl SyncSession {
             let output_path = compat.output_path;
 
             perform_codegen(output_path, &inputs)?;
+        }
+
+        Ok(())
+    }
+
+    fn typegen(&self) -> Result<(), SyncError> {
+        log::trace!("Starting typegen");
+
+        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+        struct CodegenCompatibility<'a> {
+            output_path: Option<&'a Path>,
+        }
+
+        let mut compatible_codegen_groups = HashMap::new();
+
+        for (input_name, input) in &self.inputs {
+            let output_path = input
+                .config
+                .codegen_path
+                .as_ref()
+                .map(|path| path.as_path());
+
+            let compact = CodegenCompatibility { output_path };
+
+            let group = compatible_codegen_groups
+                .entry(compact)
+                .or_insert_with(Vec::new);
+
+            group.push(input_name.clone());
+        }
+
+        for (compact, names) in compatible_codegen_groups {
+            let inputs: Vec<_> = names.iter().map(|name| &self.inputs[name]).collect();
+            let output_path = compact.output_path;
+
+            perform_typegen(output_path, &inputs)?;
         }
 
         Ok(())
